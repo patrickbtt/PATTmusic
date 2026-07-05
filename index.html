@@ -479,86 +479,82 @@ function resize() {
 resize();
 window.addEventListener('resize', resize);
 
-const particles = Array.from({length: 40}, () => ({
+const lines = Array.from({length: 12}, (_, i) => ({
+  y: i / 12,
+  speed: 0.0002 + Math.random() * 0.0003,
+  opacity: 0.03 + Math.random() * 0.05,
+  width: 0.3 + Math.random() * 0.5,
+}));
+
+const particles = Array.from({length: 80}, () => ({
   x: Math.random(),
   y: Math.random(),
-  size: Math.random() * 1.2 + 0.3,
-  speed: Math.random() * 0.0002 + 0.0001,
-  opacity: Math.random() * 0.3 + 0.05,
+  size: Math.random() * 1.2 + 0.2,
+  speed: 0.0001 + Math.random() * 0.0003,
+  opacity: Math.random() * 0.25 + 0.05,
 }));
 
 function draw() {
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-  // Ciel sunset dégradé
-  const sky = ctx.createLinearGradient(0, 0, 0, canvas.height);
-  sky.addColorStop(0,    '#0a0510');
-  sky.addColorStop(0.35, '#1a0820');
-  sky.addColorStop(0.55, '#3d1020');
-  sky.addColorStop(0.72, '#c4401a');
-  sky.addColorStop(0.85, '#e8761a');
-  sky.addColorStop(1,    '#f0a050');
-  ctx.fillStyle = sky;
+  // Fond noir
+  ctx.fillStyle = '#080808';
   ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-  // Soleil
-  const sunY = canvas.height * (0.72 + Math.sin(t * 0.002) * 0.01);
-  const sunX = canvas.width * 0.5;
-  const sun = ctx.createRadialGradient(sunX, sunY, 0, sunX, sunY, canvas.width * 0.25);
-  sun.addColorStop(0,    'rgba(255,220,100,0.9)');
-  sun.addColorStop(0.15, 'rgba(255,160,50,0.5)');
-  sun.addColorStop(0.4,  'rgba(220,80,20,0.2)');
-  sun.addColorStop(1,    'rgba(0,0,0,0)');
-  ctx.fillStyle = sun;
-  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  // Lignes horizontales qui dérivent lentement
+  lines.forEach((l, i) => {
+    l.y += l.speed;
+    if (l.y > 1) l.y = 0;
+    const y = l.y * canvas.height;
+    const grad = ctx.createLinearGradient(0, 0, canvas.width, 0);
+    grad.addColorStop(0, 'rgba(255,255,255,0)');
+    grad.addColorStop(0.5 - l.width/2, 'rgba(255,255,255,0)');
+    grad.addColorStop(0.5, `rgba(255,255,255,${l.opacity})`);
+    grad.addColorStop(0.5 + l.width/2, 'rgba(255,255,255,0)');
+    grad.addColorStop(1, 'rgba(255,255,255,0)');
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, y, canvas.width, 1);
+  });
 
-  // Reflet sur l'eau
-  const horizon = canvas.height * 0.72;
-  for (let i = 0; i < 18; i++) {
-    const ry = horizon + i * (canvas.height - horizon) / 18;
-    const rw = (30 + i * 8 + Math.sin(t * 0.05 + i) * 12);
-    const rx = sunX - rw / 2 + Math.sin(t * 0.03 + i * 0.7) * 6;
-    const alpha = 0.08 - i * 0.004;
-    ctx.fillStyle = `rgba(255,200,80,${Math.max(alpha, 0)})`;
-    ctx.fillRect(rx, ry, rw, 2.5);
+  // Grille subtile
+  ctx.strokeStyle = 'rgba(255,255,255,0.025)';
+  ctx.lineWidth = 0.5;
+  const cols = 8;
+  for (let i = 1; i < cols; i++) {
+    const x = (i / cols) * canvas.width;
+    ctx.beginPath();
+    ctx.moveTo(x, 0);
+    ctx.lineTo(x, canvas.height);
+    ctx.stroke();
   }
 
-  // Vagues horizon
-  ctx.beginPath();
-  ctx.moveTo(0, horizon);
-  for (let x = 0; x <= canvas.width; x += 4) {
-    const wave = Math.sin(x * 0.015 + t * 0.04) * 3 + Math.sin(x * 0.03 + t * 0.025) * 1.5;
-    ctx.lineTo(x, horizon + wave);
-  }
-  ctx.lineTo(canvas.width, canvas.height);
-  ctx.lineTo(0, canvas.height);
-  ctx.closePath();
-  const sea = ctx.createLinearGradient(0, horizon, 0, canvas.height);
-  sea.addColorStop(0,   'rgba(180,60,20,0.6)');
-  sea.addColorStop(0.3, 'rgba(100,30,10,0.7)');
-  sea.addColorStop(1,   'rgba(10,5,15,0.95)');
-  ctx.fillStyle = sea;
-  ctx.fill();
-
-  // Étoiles
+  // Particules flottantes
   particles.forEach(p => {
-    if (p.y > 0.5) return;
-    p.y -= p.speed * 0.3;
-    if (p.y < 0) p.y = 0.5;
-    const twinkle = p.opacity * (0.7 + Math.sin(t * 0.1 + p.x * 10) * 0.3);
+    p.y -= p.speed;
+    if (p.y < 0) { p.y = 1; p.x = Math.random(); }
+    const twinkle = p.opacity * (0.6 + Math.sin(t * 0.05 + p.x * 20) * 0.4);
     ctx.beginPath();
     ctx.arc(p.x * canvas.width, p.y * canvas.height, p.size, 0, Math.PI * 2);
-    ctx.fillStyle = `rgba(255,240,200,${twinkle})`;
+    ctx.fillStyle = `rgba(255,255,255,${twinkle})`;
     ctx.fill();
   });
 
-  // Vignette
+  // Lueur centrale blanche très subtile
+  const glow = ctx.createRadialGradient(
+    canvas.width * 0.5, canvas.height * 0.4, 0,
+    canvas.width * 0.5, canvas.height * 0.4, canvas.width * 0.6
+  );
+  glow.addColorStop(0, 'rgba(255,255,255,0.04)');
+  glow.addColorStop(0.5, 'rgba(255,255,255,0.01)');
+  glow.addColorStop(1, 'rgba(0,0,0,0)');
+  ctx.fillStyle = glow;
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+  // Vignette noire sur les bords
   const vig = ctx.createRadialGradient(
-    canvas.width/2, canvas.height/2, canvas.height * 0.2,
+    canvas.width/2, canvas.height/2, canvas.height * 0.25,
     canvas.width/2, canvas.height/2, canvas.height * 1.1
   );
   vig.addColorStop(0, 'rgba(0,0,0,0)');
-  vig.addColorStop(1, 'rgba(0,0,0,0.6)');
+  vig.addColorStop(1, 'rgba(0,0,0,0.9)');
   ctx.fillStyle = vig;
   ctx.fillRect(0, 0, canvas.width, canvas.height);
 
