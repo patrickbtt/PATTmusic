@@ -482,7 +482,7 @@ window.addEventListener('resize', resize);
 const lines = Array.from({length: 12}, (_, i) => ({
   y: i / 12,
   speed: 0.0002 + Math.random() * 0.0003,
-  opacity: 0.03 + Math.random() * 0.05,
+  opacity: 0.08 + Math.random() * 0.12,
   width: 0.3 + Math.random() * 0.5,
 }));
 
@@ -491,7 +491,7 @@ const particles = Array.from({length: 80}, () => ({
   y: Math.random(),
   size: Math.random() * 1.2 + 0.2,
   speed: 0.0001 + Math.random() * 0.0003,
-  opacity: Math.random() * 0.25 + 0.05,
+  opacity: Math.random() * 0.6 + 0.2,
 }));
 
 function draw() {
@@ -515,7 +515,7 @@ function draw() {
   });
 
   // Grille subtile
-  ctx.strokeStyle = 'rgba(255,255,255,0.025)';
+  ctx.strokeStyle = 'rgba(255,255,255,0.08)';
   ctx.lineWidth = 0.5;
   const cols = 8;
   for (let i = 1; i < cols; i++) {
@@ -542,7 +542,7 @@ function draw() {
     canvas.width * 0.5, canvas.height * 0.4, 0,
     canvas.width * 0.5, canvas.height * 0.4, canvas.width * 0.6
   );
-  glow.addColorStop(0, 'rgba(255,255,255,0.04)');
+  glow.addColorStop(0, 'rgba(255,255,255,0.12)');
   glow.addColorStop(0.5, 'rgba(255,255,255,0.01)');
   glow.addColorStop(1, 'rgba(0,0,0,0)');
   ctx.fillStyle = glow;
@@ -554,7 +554,7 @@ function draw() {
     canvas.width/2, canvas.height/2, canvas.height * 1.1
   );
   vig.addColorStop(0, 'rgba(0,0,0,0)');
-  vig.addColorStop(1, 'rgba(0,0,0,0.9)');
+  vig.addColorStop(1, 'rgba(0,0,0,0.6)');
   ctx.fillStyle = vig;
   ctx.fillRect(0, 0, canvas.width, canvas.height);
 
